@@ -306,48 +306,56 @@ cp -r family-schedule-guide/src/lib/* lib/
 
 ---
 
-## Step 7: Deploy & Set Up Cron Jobs
+## Step 7: Deploy to Vercel
 
-### 7.1 Deploy to Vercel
+### 7.1 Push to Git
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Set environment variables
-vercel env add NEXT_PUBLIC_SUPABASE_URL
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-vercel env add OPENAI_API_KEY
-vercel env add TELEGRAM_CHAT_BOT_HAYAT_SCHEDULE
-vercel env add TELEGRAM_CHAT_ID_FAMILY
-vercel env add CRON_SECRET
-vercel env add NEXT_PUBLIC_APP_URL
+git init
+git add .
+git commit -m "Initial commit - family schedule app"
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git push -u origin main
 ```
 
-### 7.2 Set Up Cron Jobs (Optional — requires Supabase Pro)
+### 7.2 Connect Vercel to Git
+
+1. Go to [vercel.com](https://vercel.com) and click **Add New Project**
+2. Import your GitHub repository
+3. Vercel auto-detects Next.js — keep default settings
+4. Before deploying, add **Environment Variables** in the Vercel project settings:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `OPENAI_API_KEY`
+   - `TELEGRAM_CHAT_BOT_FAMILY`
+   - `TELEGRAM_BOT_USERNAME`
+   - `TELEGRAM_CHAT_ID_FAMILY`
+   - `FAMILY_MEMBERS`
+   - `FAMILY_MEMBER_EMOJIS`
+   - `DEFAULT_PERSON`
+   - `NEXT_PUBLIC_FAMILY_MEMBERS`
+   - `NEXT_PUBLIC_DEFAULT_PERSON`
+   - `NEXT_PUBLIC_APP_URL`
+   - `CRON_SECRET`
+   - `DISABLE_CRON_JOBS`
+5. Click **Deploy**
+
+Every push to `main` will auto-deploy.
+
+### 7.3 Set Up Cron Jobs (Optional — requires Supabase Pro)
 
 After deploying, if your Supabase plan supports `pg_cron` and `pg_net`:
 
 1. Go to **Supabase Dashboard → SQL Editor**
-2. Run `migrations/003_create_cron_reminders.sql` — replace `{{YOUR_APP_URL}}` with your deployed URL
-3. Run `migrations/004_create_cron_daily_schedule.sql` — replace `{{YOUR_APP_URL}}` with your deployed URL
-
-**What the cron jobs do:**
+2. Run `migrations/003_create_cron_reminders.sql` — replace `{{YOUR_APP_URL}}` with your Vercel URL
+3. Run `migrations/004_create_cron_daily_schedule.sql` — replace `{{YOUR_APP_URL}}` with your Vercel URL
 
 | Job | Schedule | Purpose |
 |-----|----------|---------|
-| `family-schedule-reminders` | Every 5 minutes | Checks for events with reminders that are due and sends Telegram notifications |
-| `family-daily-schedule` | 4:00 AM UTC (7:00 AM Israel) | Sends a daily summary of today's events to all family members |
+| `family-schedule-reminders` | Every 5 minutes | Checks for due reminders and sends Telegram notifications |
+| `family-daily-schedule` | 4:00 AM UTC (7:00 AM Israel) | Sends daily event summary to all family members |
 
-**If you can't use pg_cron:**
-- Set `DISABLE_CRON_JOBS=true` in `.env`
-- You can still trigger these manually:
-  - `GET /api/family/check-reminders` — check and send due reminders
-  - `GET /api/family/daily-schedule` — send today's schedule
-- Or use an external cron service (e.g., [cron-job.org](https://cron-job.org), GitHub Actions) to call these endpoints on a schedule
+**If you can't use pg_cron:** set `DISABLE_CRON_JOBS=true` and use an external cron service (e.g., [cron-job.org](https://cron-job.org)) to call `/api/family/check-reminders` and `/api/family/daily-schedule` on a schedule.
 
 ---
 
@@ -465,12 +473,11 @@ npm run dev
 
 # 6. Open http://localhost:3000/family-schedule
 
-# 7. Deploy to Vercel
-vercel --prod
+# 7. Push to Git & connect Vercel to the repo (see Step 7)
 
 # 8. Set up Telegram webhook (see Step 8)
 
-# 9. (Optional) Set up cron jobs (see Step 7.2)
+# 9. (Optional) Set up cron jobs (see Step 7.3)
 ```
 
 ---
